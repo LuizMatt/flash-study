@@ -1,6 +1,13 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from "expo-router";
+import { useAuth } from "../../src/context/AuthContext";
 
 export default function TabsLayout() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Redirect href="/login" />;
+  }
+
   return (
     <Tabs>
       <Tabs.Screen name="categories" options={{ title: 'Categorias' }} />
