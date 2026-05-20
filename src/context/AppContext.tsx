@@ -64,6 +64,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
 const AppContext = createContext<AppContextData | null>(null);
 
+const initialState: AppState = {
+  categories: mockCategories,
+  flashcards: mockFlashcards,
+  sessions: mockSessions,
+};
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
