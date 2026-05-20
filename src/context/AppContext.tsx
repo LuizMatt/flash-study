@@ -14,7 +14,9 @@ type AppAction =
   | { type: 'ADD_CATEGORY'; payload: Category }
   | { type: 'ADD_CARD'; payload: Flashcard }
   | { type: 'SET_CARD_LEARNED'; payload: { id: string; learned: boolean } }
-  | { type: 'TOGGLE_CARD_LEARNED'; payload: { id: string } };
+  | { type: 'TOGGLE_CARD_LEARNED'; payload: { id: string } }
+  | { type: 'MARK_LEARNED'; id: string }
+  | { type: 'UPDATE_SESSION'; session: ReviewSession };
 
 interface AppContextData {
   state: AppState;
@@ -57,18 +59,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
             : flashcard
         ),
       };
+    case 'MARK_LEARNED':
+      return {
+        ...state,
+        flashcards: state.flashcards.map((flashcard) =>
+          flashcard.id === action.id
+            ? { ...flashcard, learned: true }
+            : flashcard
+        ),
+      };
+    case 'UPDATE_SESSION':
+      return {
+        ...state,
+        sessions: [...state.sessions, action.session],
+      };
     default:
       return state;
   }
 }
 
 const AppContext = createContext<AppContextData | null>(null);
-
-const initialState: AppState = {
-  categories: mockCategories,
-  flashcards: mockFlashcards,
-  sessions: mockSessions,
-};
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);

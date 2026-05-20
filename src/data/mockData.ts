@@ -2,6 +2,7 @@ import { Category } from '../types/Category';
 import { Flashcard } from '../types/Flashcard';
 import { ReviewSession } from '../types/Session';
 import { DEFAULT_CATEGORY_ICON } from '../constants/categoryIcons';
+import { UserData } from '../types/User';
 
 export const categories: Category[] = [
   { id: '1', name: 'Redes e IoT', color: '#2563EB', icon: DEFAULT_CATEGORY_ICON, createdAt: new Date('2025-01-10') },
@@ -186,4 +187,17 @@ export const reviewSessions: ReviewSession[] = [
     total: 21,
     correct: 15,
   },
+];
+
+export const users: UserData[] = [
+  {
+    email: "teste@gmail.com",
+    name: "teste",
+    password: "1234"
+  },
+  {
+    email: "teste2@gmail.com",
+    name: "teste2",
+    password: "1234"
+  }
 ];

@@ -46,7 +46,7 @@ export function loginService(user:UserData):ResponseAuth{
 }
 
 function findUserByEmail(email:string){
-    const user = users.find(u=> u?.email?.toLowerCase() === email?.toLowerCase());
+    const user = users.find((u: UserData)=> u?.email?.toLowerCase() === email?.toLowerCase());
 
     return user;
 }
