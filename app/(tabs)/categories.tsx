@@ -1,24 +1,48 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../src/context/AppContext';
 import CategoryCard from '../../src/components/CategoryCard';
+import NewCategoryModal from '../../src/components/NewCategoryModal';
 
 export default function CategoriesScreen() {
-  const { categories, flashcards } = useApp();
+  const { state } = useApp();
+  const { categories, flashcards } = state;
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const renderItem = ({ item }: { item: typeof categories[0] }) => {
-    const totalCards = flashcards.filter((f) => f.categoryId === item.id).length;
-    return <CategoryCard category={item} totalCards={totalCards} />;
+    const categoryCards = flashcards.filter((f) => f.categoryId === item.id);
+    const totalCount = categoryCards.length;
+    const learnedCount = categoryCards.filter((f) => f.learned).length;
+
+    return (
+      <CategoryCard
+        category={item}
+        learnedCount={learnedCount}
+        totalCount={totalCount}
+      />
+    );
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Minhas Categorias</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Minhas Categorias</Text>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => setIsModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
         <FlatList
           data={categories}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
@@ -28,6 +52,7 @@ export default function CategoriesScreen() {
           }
         />
       </View>
+      <NewCategoryModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -39,17 +64,35 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 6,
+    marginTop: 10,
+    marginBottom: 14,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#1C1C1E',
-    marginBottom: 20,
-    marginTop: 10,
+    flex: 1,
+  },
+  addButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 24,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
   },
   emptyContainer: {
     flex: 1,

@@ -3,13 +3,18 @@ import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Category } from '../types/Category';
 import { Ionicons } from '@expo/vector-icons';
+import ProgressBar from './ProgressBar';
+import { getCategoryIcon } from '../constants/categoryIcons';
 
 interface Props {
   category: Category;
-  totalCards: number;
+  learnedCount: number;
+  totalCount: number;
 }
 
-export default function CategoryCard({ category, totalCards }: Props) {
+export default function CategoryCard({ category, learnedCount, totalCount }: Props) {
+  const progress = totalCount > 0 ? learnedCount / totalCount : 0;
+
   return (
     <TouchableOpacity
       style={styles.card}
@@ -17,13 +22,18 @@ export default function CategoryCard({ category, totalCards }: Props) {
       activeOpacity={0.7}
     >
       <View style={[styles.iconContainer, { backgroundColor: category.color + '20' }]}>
-        <Ionicons name={category.icon as any} size={24} color={category.color} />
+        <Ionicons name={getCategoryIcon(category.icon)} size={24} color={category.color} />
       </View>
+      <Ionicons name="chevron-forward" size={18} color="#C7C7CC" style={styles.chevron} />
       <View style={styles.infoContainer}>
         <Text style={styles.name}>{category.name}</Text>
-        <Text style={styles.count}>{totalCards} cards</Text>
+        <Text style={styles.count}>
+          {learnedCount} de {totalCount} cards
+        </Text>
+        <View style={styles.progressWrapper}>
+          <ProgressBar progress={progress} color={category.color} />
+        </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
     </TouchableOpacity>
   );
 }
@@ -31,11 +41,12 @@ export default function CategoryCard({ category, totalCards }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 8,
     padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    margin: 6,
+    flex: 1,
+    minHeight: 154,
+    position: 'relative',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -48,19 +59,27 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
   infoContainer: {
     flex: 1,
   },
+  chevron: {
+    position: 'absolute',
+    top: 16,
+    right: 14,
+  },
   name: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#1C1C1E',
   },
   count: {
     fontSize: 14,
     color: '#8E8E93',
-    marginTop: 2,
+    marginTop: 4,
+  },
+  progressWrapper: {
+    marginTop: 12,
   },
 });

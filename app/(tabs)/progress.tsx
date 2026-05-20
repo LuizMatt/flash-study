@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useApp } from '../../src/context/AppContext';
 import ProgressBar from '../../src/components/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
+import { getCategoryIcon } from '../../src/constants/categoryIcons';
 
 export default function ProgressScreen() {
-  const { categories, flashcards } = useApp();
+  const { state } = useApp();
+  const { categories, flashcards } = state;
 
   const categoryStats = categories.map((cat) => {
     const catFlashcards = flashcards.filter((c) => c.categoryId === cat.id);
@@ -36,7 +38,7 @@ export default function ProgressScreen() {
             <View key={cat.id} style={styles.categoryItem}>
               <View style={styles.categoryHeader}>
                 <View style={[styles.iconContainer, { backgroundColor: cat.color + '20' }]}>
-                  <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  <Ionicons name={getCategoryIcon(cat.icon)} size={20} color={cat.color} />
                 </View>
                 <View style={styles.nameContainer}>
                   <Text style={styles.categoryName}>{cat.name}</Text>
