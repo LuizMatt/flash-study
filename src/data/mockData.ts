@@ -1,9 +1,10 @@
 import { Category } from '../types/Category';
 import { Flashcard } from '../types/Flashcard';
 import { ReviewSession } from '../types/Session';
+import { DEFAULT_CATEGORY_ICON } from '../constants/categoryIcons';
 
 export const categories: Category[] = [
-  { id: '1', name: 'Redes e IoT', color: '#2563EB', icon: '🌐', createdAt: new Date('2025-01-10') },
+  { id: '1', name: 'Redes e IoT', color: '#2563EB', icon: DEFAULT_CATEGORY_ICON, createdAt: new Date('2025-01-10') },
 ];
 
 export const flashcards: Flashcard[] = [
