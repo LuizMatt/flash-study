@@ -1,27 +1,27 @@
-import React, { createContext, useContext, useState } from 'react';
-import { categories as mockCategories, flashcards as mockFlashcards, reviewSessions as mockSessions } from '../data/mockData';
-import { Category } from '../types/Category';
-import { Flashcard } from '../types/Flashcard';
-import { ReviewSession } from '../types/Session';
+import React, { createContext, useContext, useReducer } from 'react';
+import { appReducer, initialState, AppState } from './AppReducer';
 
-interface AppContextData {
-  categories: Category[];
-  flashcards: Flashcard[];
-  sessions: ReviewSession[];
+interface AppContextType {
+  state: AppState;
+  dispatch: React.Dispatch<any>;
 }
 
-const AppContext = createContext<AppContextData>({} as AppContextData);
+const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [categories] = useState<Category[]>(mockCategories);
-  const [flashcards] = useState<Flashcard[]>(mockFlashcards);
-  const [sessions] = useState<ReviewSession[]>(mockSessions);
+  const [state, dispatch] = useReducer(appReducer, initialState);
 
   return (
-    <AppContext.Provider value={{ categories, flashcards, sessions }}>
+    <AppContext.Provider value={{ state, dispatch }}>
       {children}
     </AppContext.Provider>
   );
 }
 
-export const useApp = () => useContext(AppContext);
+export function useApp(): AppContextType {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
+}
