@@ -12,6 +12,9 @@ export default function Field({
   placeholder,
   onChange
 }: Omit<FieldProps, "id">) {
+  const isEmail = label.toLowerCase().includes("email");
+  const isPassword = label.toLowerCase().includes("senha") || label.toLowerCase().includes("password");
+
   return (
     <View
       style={{
@@ -34,6 +37,10 @@ export default function Field({
       <TextInput
         placeholder={placeholder}
         placeholderTextColor="#94a3b8"
+        secureTextEntry={isPassword}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType={isEmail ? "email-address" : "default"}
         style={{
           backgroundColor: "#0f172a",
           borderWidth: 1,

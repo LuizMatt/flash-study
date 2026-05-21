@@ -7,7 +7,7 @@ import { registerService } from "../../src/data/serviceMock";
 
 const inputs:FieldProps[]  = [
     {
-        id:"username",
+        id:"name",
         label: 'Nome',
         placeholder: 'exemplo'
     },

@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import ReviewFlow from "../../src/components/ReviewFlow";
 
 export default function ReviewScreen() {
   const [sessionKey, setSessionKey] = useState(0);
+  const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
 
   useFocusEffect(
     useCallback(() => {
@@ -11,5 +12,5 @@ export default function ReviewScreen() {
     }, []),
   );
 
-  return <ReviewFlow key={sessionKey} />;
+  return <ReviewFlow key={`${categoryId}-${sessionKey}`} categoryId={categoryId} />;
 }

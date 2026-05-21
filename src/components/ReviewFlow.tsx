@@ -15,7 +15,7 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
 
   // Captura os cards uma vez ao montar a sessão para evitar que o índice
   // fique errado quando MARK_LEARNED remove o card do filtro ao vivo.
-  const [cards] = useState(() =>
+  const [cards, setCards] = useState(() =>
     state.flashcards.filter((f) => {
       if (f.learned) return false;
       if (categoryId) return f.categoryId === categoryId;
@@ -29,6 +29,23 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
 
   const total = cards.length;
   const current = cards[currentIndex];
+
+  function handleReset() {
+    dispatch({ type: 'RESET_CARDS_LEARNED', payload: { categoryId } });
+    const resetCards = state.flashcards.map((f) => {
+      if (!categoryId || f.categoryId === categoryId) {
+        return { ...f, learned: false };
+      }
+      return f;
+    }).filter((f) => {
+      if (categoryId) return f.categoryId === categoryId;
+      return true;
+    });
+    setCards(resetCards);
+    setCurrentIndex(0);
+    setLearnedCount(0);
+    setShowResult(false);
+  }
 
   function advance(learned: boolean) {
     const nextLearnedCount = learnedCount + (learned ? 1 : 0);
@@ -55,10 +72,22 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
   }
 
   if (total === 0) {
+    const hasAnyCards = state.flashcards.some((f) =>
+      categoryId ? f.categoryId === categoryId : true
+    );
+
     return (
       <View style={styles.container}>
         <Text style={styles.resultTitle}>Tudo em dia!</Text>
         <Text style={styles.resultText}>Não há cards para revisar.</Text>
+        {hasAnyCards && (
+          <TouchableOpacity
+            style={styles.doneButton}
+            onPress={handleReset}
+          >
+            <Text style={styles.doneButtonText}>Revisar Novamente</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -71,16 +100,24 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
           {learnedCount}/{total}
         </Text>
         <Text style={styles.resultText}>cards marcados como aprendidos</Text>
-        <TouchableOpacity
-          style={styles.doneButton}
-          onPress={() =>
-            router.canGoBack()
-              ? router.back()
-              : router.replace("/(tabs)/categories")
-          }
-        >
-          <Text style={styles.doneButtonText}>Voltar</Text>
-        </TouchableOpacity>
+        <View style={{ gap: 12 }}>
+          <TouchableOpacity
+            style={styles.doneButton}
+            onPress={handleReset}
+          >
+            <Text style={styles.doneButtonText}>Revisar Novamente</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.doneButton, { backgroundColor: "#1e293b", borderWidth: 1, borderColor: "#334155" }]}
+            onPress={() =>
+              router.canGoBack()
+                ? router.back()
+                : router.replace("/(tabs)/categories")
+            }
+          >
+            <Text style={[styles.doneButtonText, { color: "#94a3b8" }]}>Voltar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }

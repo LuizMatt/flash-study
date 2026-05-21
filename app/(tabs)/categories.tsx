@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Plus, FolderPlus } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useApp } from '../../src/context/AppContext';
 import CategoryCard from '../../src/components/CategoryCard';
 import NewCategoryModal from '../../src/components/NewCategoryModal';
@@ -28,13 +29,13 @@ export default function CategoriesScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Minhas Categorias</Text>
+          <Text style={styles.title}>Meus Cards</Text>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => setIsModalVisible(true)}
             activeOpacity={0.7}
           >
-            <Ionicons name="add" size={24} color="#FFFFFF" />
+            <FolderPlus size={20} color="#1C1C1E" />
           </TouchableOpacity>
         </View>
         <FlatList
@@ -47,11 +48,19 @@ export default function CategoriesScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Nenhuma categoria encontrada.</Text>
+              <Text style={styles.emptyText}>Nenhum card encontrado.</Text>
             </View>
           }
         />
       </View>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/create')}
+        activeOpacity={0.8}
+      >
+        <Plus size={18} color="#FFFFFF" style={styles.fabIcon} />
+        <Text style={styles.fabText}>Novo</Text>
+      </TouchableOpacity>
       <NewCategoryModal visible={isModalVisible} onClose={() => setIsModalVisible(false)} />
     </SafeAreaView>
   );
@@ -76,20 +85,46 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: '700',
     color: '#1C1C1E',
     flex: 1,
+    letterSpacing: -0.5,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#2563EB',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F2F7',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  fabIcon: {
+    marginRight: 4,
+  },
+  fabText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
   listContent: {
-    paddingBottom: 24,
+    paddingBottom: 90,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -101,7 +136,7 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#8E8E93',
   },
 });

@@ -16,6 +16,7 @@ type AppAction =
   | { type: 'SET_CARD_LEARNED'; payload: { id: string; learned: boolean } }
   | { type: 'TOGGLE_CARD_LEARNED'; payload: { id: string } }
   | { type: 'MARK_LEARNED'; id: string }
+  | { type: 'RESET_CARDS_LEARNED'; payload: { categoryId?: string } }
   | { type: 'UPDATE_SESSION'; session: ReviewSession };
 
 interface AppContextData {
@@ -65,6 +66,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
         flashcards: state.flashcards.map((flashcard) =>
           flashcard.id === action.id
             ? { ...flashcard, learned: true }
+            : flashcard
+        ),
+      };
+    case 'RESET_CARDS_LEARNED':
+      return {
+        ...state,
+        flashcards: state.flashcards.map((flashcard) =>
+          !action.payload.categoryId || flashcard.categoryId === action.payload.categoryId
+            ? { ...flashcard, learned: false }
             : flashcard
         ),
       };
