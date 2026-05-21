@@ -48,7 +48,7 @@ export default function NewCategoryModal({ visible, onClose }: Props) {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      setError('Informe o nome da categoria.');
+      setError('Informe o nome do card.');
       return;
     }
 
@@ -57,7 +57,7 @@ export default function NewCategoryModal({ visible, onClose }: Props) {
     );
 
     if (categoryAlreadyExists) {
-      setError('Já existe uma categoria com esse nome.');
+      setError('Já existe um card com esse nome.');
       return;
     }
 
@@ -84,7 +84,7 @@ export default function NewCategoryModal({ visible, onClose }: Props) {
       >
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.title}>Nova categoria</Text>
+            <Text style={styles.title}>Novo card</Text>
             <TouchableOpacity style={styles.closeButton} onPress={handleClose} activeOpacity={0.7}>
               <Ionicons name="close" size={22} color="#1C1C1E" />
             </TouchableOpacity>
@@ -154,7 +154,7 @@ export default function NewCategoryModal({ visible, onClose }: Props) {
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity style={[styles.saveButton, { backgroundColor: selectedColor }]} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>Salvar categoria</Text>
+            <Text style={styles.saveButtonText}>Salvar card</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -53,7 +53,7 @@ export default function CreateScreen() {
     }
 
     if (!categoryId) {
-      setError('Selecione uma categoria.');
+      setError('Selecione um card.');
       return;
     }
 
@@ -95,7 +95,7 @@ export default function CreateScreen() {
         {categories.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="albums-outline" size={32} color="#8E8E93" />
-            <Text style={styles.emptyText}>Crie uma categoria antes de adicionar cards.</Text>
+            <Text style={styles.emptyText}>Crie um card antes de adicionar flashcards.</Text>
           </View>
         ) : (
           <>
@@ -135,7 +135,7 @@ export default function CreateScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Categoria</Text>
+              <Text style={styles.label}>Card</Text>
               <View style={styles.categoryList}>
                 {categories.map((category) => {
                   const isSelected = category.id === categoryId;

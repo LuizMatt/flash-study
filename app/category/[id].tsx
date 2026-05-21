@@ -55,7 +55,7 @@ export default function CategoryDetailScreen() {
   if (!category) {
     return (
       <View style={styles.errorContainer}>
-        <Text>Categoria não encontrada</Text>
+        <Text>Card não encontrado</Text>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backLink}>Voltar</Text>
         </TouchableOpacity>
@@ -167,7 +167,7 @@ export default function CategoryDetailScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {total === 0 ? 'Nenhum card nesta categoria.' : 'Nenhum card neste filtro.'}
+              {total === 0 ? 'Nenhum card neste deck.' : 'Nenhum card neste filtro.'}
             </Text>
             {total === 0 && (
               <TouchableOpacity
