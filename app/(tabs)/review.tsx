@@ -1,14 +1,16 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useState, useCallback } from "react";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import ReviewFlow from "../../src/components/ReviewFlow";
 
 export default function ReviewScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Revisar</Text>
-    </View>
-  );
-}
+  const [sessionKey, setSessionKey] = useState(0);
+  const { categoryId } = useLocalSearchParams<{ categoryId?: string }>();
 
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 24, fontWeight: 'bold' }
-});
+  useFocusEffect(
+    useCallback(() => {
+      setSessionKey((prev) => prev + 1);
+    }, []),
+  );
+
+  return <ReviewFlow key={`${categoryId}-${sessionKey}`} categoryId={categoryId} />;
+}
