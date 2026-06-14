@@ -34,19 +34,18 @@ Esta tarefa tem como função estabelecer toda a base infraestrutural do backend
 
 ## Checklist de Execução
 
-- [ ] 1.1 Criar pasta `backend/` na raiz do projeto e inicializar com `npm init -y`.
-- [ ] 1.2 Instalar dependências de produção listadas no plano.
-- [ ] 1.3 Instalar dependências de dev listadas no plano.
-- [ ] 1.4 Configurar o `tsconfig.json` do TypeScript com regras rígidas (`strict`).
-- [ ] 1.5 Configurar ferramentas de linting e formatação (ESLint + Prettier).
-- [ ] 1.6 Criar os arquivos `.env` e `.env.example` com as variáveis necessárias.
-- [ ] 1.7 Criar `src/config/env.ts` para validação em tempo de execução das variáveis com Zod.
-- [ ] 1.8 Inicializar a estrutura do Prisma ORM (`npx prisma init`).
-- [ ] 1.9 Construir a modelagem de entidades no `prisma/schema.prisma` com todas as tabelas.
-- [ ] 1.10 Configurar a URL de conexão local com o banco de dados PostgreSQL.
-- [ ] 1.11 Gerar e executar a migration inicial (`npx prisma migrate dev --name init`).
-- [ ] 1.12 Criar singleton do PrismaClient em `src/config/database.ts` para evitar conexões duplicadas.
-- [ ] 1.13 Desenvolver o script de semente (`prisma/seed.ts`) com dados de teste.
-- [ ] 1.14 Criar a aplicação Express base (`src/app.ts`) e o arquivo de inicialização do servidor (`src/server.ts`).
-- [ ] 1.15 Configurar os scripts executáveis no `package.json` (`dev`, `build`, `start`, `lint`).
-- [ ] 1.16 Desenvolver e testar o endpoint de healthcheck (`GET /health`).
+- [x] 1.1 Criar pasta `backend/` na raiz do projeto e inicializar com `npm init -y`.
+- [/] 1.2 Criar `backend/docker-compose.yml` para o PostgreSQL e iniciar o container (arquivo criado, aguardando inicialização do Docker).
+- [x] 1.3 Instalar dependências de produção (express, @prisma/client, zod, helmet, cors, pino, pino-pretty, express-rate-limit, bcryptjs, jsonwebtoken).
+- [x] 1.4 Instalar dependências de dev (typescript, tsx, jest, ts-jest, supertest, prisma, eslint, prettier, eslint-config-prettier, eslint-plugin-prettier, @types/express, @types/jest, @types/supertest, @types/cors, @types/bcryptjs, @types/jsonwebtoken, @types/node).
+- [x] 1.5 Configurar o `tsconfig.json` do TypeScript com regras rígidas (`strict`).
+- [x] 1.6 Configurar ferramentas de linting e formatação (ESLint + Prettier).
+- [x] 1.7 Criar os arquivos `.env` e `.env.example` com as variáveis necessárias.
+- [x] 1.8 Criar `src/config/env.ts` para validação em tempo de execução das variáveis com Zod.
+- [x] 1.9 Inicializar a estrutura do Prisma ORM e construir a modelagem de entidades no `prisma/schema.prisma`.
+- [ ] 1.10 Configurar a URL de conexão local com o banco de dados PostgreSQL e rodar a migration inicial (`npx prisma migrate dev --name init`).
+- [x] 1.11 Criar singleton do PrismaClient em `src/config/database.ts` para evitar conexões duplicadas.
+- [/] 1.12 Desenvolver o script de semente (`prisma/seed.ts`) com dados de teste e rodar (`npx prisma db seed`) (script pronto, rodar depende do banco).
+- [x] 1.13 Criar a aplicação Express base (`src/app.ts`) e o arquivo de inicialização do servidor (`src/server.ts`).
+- [x] 1.14 Configurar os scripts executáveis no `package.json` (`dev`, `build`, `start`, `lint`, `test`).
+- [/] 1.15 Desenvolver e testar o endpoint de healthcheck (`GET /health`) com teste de integration Jest (endpoint e testes prontos, execução depende do banco).
