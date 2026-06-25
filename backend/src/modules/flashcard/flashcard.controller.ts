@@ -41,14 +41,14 @@ export class FlashcardController {
     }
   }
 
-  async update(req: Request<{ id: string }, {}, UpdateFlashcardRequest>, res: Response, next: NextFunction) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       const flashcard = await this.service.updateFlashcard(id, userId, req.body);
       res.status(200).json({
         message: 'Cartão de estudo atualizado com sucesso',
@@ -59,14 +59,14 @@ export class FlashcardController {
     }
   }
 
-  async destroy(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+  async destroy(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       await this.service.deleteFlashcard(id, userId);
       res.status(200).json({
         message: 'Cartão de estudo excluído com sucesso',
@@ -76,14 +76,14 @@ export class FlashcardController {
     }
   }
 
-  async markLearned(req: Request<{ id: string }, {}, UpdateLearnedRequest>, res: Response, next: NextFunction) {
+  async markLearned(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { learned } = req.body;
       const flashcard = await this.service.updateLearnedStatus(id, userId, learned);
       res.status(200).json({
@@ -95,14 +95,14 @@ export class FlashcardController {
     }
   }
 
-  async resetLearned(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+  async resetLearned(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       const result = await this.service.resetDeck(id, userId);
       res.status(200).json(result);
     } catch (error) {

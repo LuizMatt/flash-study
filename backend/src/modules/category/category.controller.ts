@@ -24,14 +24,14 @@ export class CategoryController {
     }
   }
 
-  async show(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+  async show(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       const category = await this.service.getCategoryById(id, userId);
       res.status(200).json(category);
     } catch (error) {
@@ -56,14 +56,14 @@ export class CategoryController {
     }
   }
 
-  async update(req: Request<{ id: string }, {}, UpdateCategoryRequest>, res: Response, next: NextFunction) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       const category = await this.service.updateCategory(id, userId, req.body);
       res.status(200).json({
         message: 'Categoria atualizada com sucesso',
@@ -74,14 +74,14 @@ export class CategoryController {
     }
   }
 
-  async destroy(req: Request<{ id: string }>, res: Response, next: NextFunction) {
+  async destroy(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.userId;
       if (!userId) {
         throw new UnauthorizedError('Usuário não autenticado');
       }
 
-      const { id } = req.params;
+      const id = req.params.id as string;
       await this.service.deleteCategory(id, userId);
       res.status(200).json({
         message: 'Categoria excluída com sucesso',

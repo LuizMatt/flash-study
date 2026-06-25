@@ -35,6 +35,13 @@ describe('generateRefreshToken', () => {
     const decoded = jwt.decode(token) as { sub: string };
     expect(decoded.sub).toBe(TEST_USER_ID);
   });
+
+  it('should generate unique tokens for the same user', () => {
+    const firstToken = generateRefreshToken(TEST_USER_ID);
+    const secondToken = generateRefreshToken(TEST_USER_ID);
+
+    expect(firstToken).not.toBe(secondToken);
+  });
 });
 
 describe('verifyAccessToken', () => {

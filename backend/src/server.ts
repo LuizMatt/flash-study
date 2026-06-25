@@ -1,29 +1,35 @@
 import { app } from './app';
 import { env } from './config/env';
 import { prisma } from './config/database';
+import { logger } from './config/logger';
 
 const server = app.listen(env.PORT, () => {
-  console.log(`🚀 Server is running on port ${env.PORT} in ${env.NODE_ENV} mode`);
-  console.log(`🔗 Healthcheck: http://localhost:${env.PORT}/health`);
+  logger.info(
+    {
+      port: env.PORT,
+      environment: env.NODE_ENV,
+      healthcheckUrl: `http://localhost:${env.PORT}/health`,
+    },
+    'server started',
+  );
 });
 
-// Graceful shutdown
 const gracefulShutdown = async (signal: string) => {
-  console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+  logger.info({ signal }, 'starting graceful shutdown');
 
   server.close(async () => {
-    console.log('💤 Express server closed.');
+    logger.info('express server closed');
     await prisma.$disconnect();
-    console.log('🔌 Prisma client disconnected.');
+    logger.info('prisma client disconnected');
     process.exit(0);
   });
 
-  // Force shutdown after 10 seconds
   setTimeout(() => {
-    console.error('⚠️ Could not close connections in time, forcefully shutting down');
+    logger.error('could not close connections in time, forcefully shutting down');
     process.exit(1);
   }, 10000);
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+

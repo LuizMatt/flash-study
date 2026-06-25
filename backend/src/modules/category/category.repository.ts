@@ -1,5 +1,21 @@
 import { prisma } from '../../config/database';
 
+type CategoryWithFlashcardStats = {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: {
+    flashcards: number;
+  };
+  flashcards: Array<{
+    learned: boolean;
+  }>;
+};
+
 export class CategoryRepository {
   async create(data: { name: string; color: string; icon: string; userId: string }) {
     return prisma.category.create({
@@ -68,7 +84,7 @@ export class CategoryRepository {
       createdAt: category.createdAt,
       updatedAt: category.updatedAt,
       totalCards: category._count.flashcards,
-      learnedCards: category.flashcards.filter((f) => f.learned).length,
+      learnedCards: category.flashcards.filter((f: { learned: boolean }) => f.learned).length,
     };
   }
 
@@ -92,7 +108,7 @@ export class CategoryRepository {
       },
     });
 
-    return categories.map((c) => ({
+    return (categories as CategoryWithFlashcardStats[]).map((c) => ({
       id: c.id,
       name: c.name,
       color: c.color,

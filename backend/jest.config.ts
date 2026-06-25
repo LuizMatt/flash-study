@@ -8,6 +8,18 @@ const config: Config = {
   clearMocks: true,
   resetMocks: true,
   restoreMocks: true,
+  collectCoverageFrom: [
+    '<rootDir>/src/modules/**/*.service.ts',
+    '!<rootDir>/src/**/*.d.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
   projects: [
     {
       displayName: 'unit',
@@ -23,6 +35,7 @@ const config: Config = {
       preset: 'ts-jest',
       testEnvironment: 'node',
       testMatch: ['<rootDir>/tests/integration/**/*.test.ts'],
+      setupFiles: ['<rootDir>/tests/setup-unit.ts'],
       setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
     },
   ],
