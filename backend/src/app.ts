@@ -3,24 +3,23 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimiter } from './middlewares/rateLimiter';
 import { errorHandler } from './middlewares/errorHandler';
+import { requestLogger } from './middlewares/requestLogger';
 import { prisma } from './config/database';
 import { env } from './config/env';
+import { router } from './routes';
 
 const app = express();
 
-// Security and utility middlewares
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Global rate limiting
+app.use(requestLogger);
 app.use(rateLimiter);
 
-// GET /health
 app.get('/health', async (_req, res) => {
   try {
-    // Check database connection
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({
       status: 'ok',
@@ -37,8 +36,10 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-// Global Error Handler (should be registered last)
+app.use('/api', router);
+
 app.use(errorHandler);
 
 export { app };
 export default app;
+
