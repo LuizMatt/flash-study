@@ -1,4 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 import { authConfig } from '../../config/auth';
 import { UnauthorizedError } from '../errors/UnauthorizedError';
 
@@ -13,7 +14,7 @@ export function generateAccessToken(userId: string): string {
 }
 
 export function generateRefreshToken(userId: string): string {
-  return jwt.sign({ sub: userId }, authConfig.refreshSecret, {
+  return jwt.sign({ sub: userId, jti: randomUUID() }, authConfig.refreshSecret, {
     expiresIn: authConfig.refreshExpiresIn,
   } as SignOptions);
 }

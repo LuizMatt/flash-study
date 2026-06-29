@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger';
 import { AppError } from '../shared/errors/AppError';
 
 export function errorHandler(
@@ -16,8 +17,7 @@ export function errorHandler(
     });
   }
 
-  // Log unhandled exceptions
-  console.error('🔥 Unhandled Exception:', err);
+  logger.error({ err }, 'unhandled exception');
 
   return res.status(500).json({
     error: {
@@ -26,3 +26,4 @@ export function errorHandler(
     },
   });
 }
+
