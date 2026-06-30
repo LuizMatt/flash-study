@@ -6,8 +6,7 @@ import {
   LoginCredentials,
   RegisterCredentials,
 } from '../types/Auth';
-
-const BASE_URL = 'http://localhost:3333/api/auth';
+import { apiFetch } from './apiClient';
 
 const STORAGE_KEYS = {
   ACCESS_TOKEN: 'auth_access_token',
@@ -77,40 +76,18 @@ export async function getStoredUser(): Promise<AuthSession['user'] | null> {
   }
 }
 
-async function post<T>(path: string, body: object, accessToken?: string): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (accessToken) {
-    headers['Authorization'] = `Bearer ${accessToken}`;
-  }
-
-  const res = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-
-  if (!res.ok) {
-    const message = data?.error?.message ?? data?.message ?? 'Erro desconhecido';
-    throw new Error(message);
-  }
-
-  return data as T;
-}
-
 export async function loginRequest(credentials: LoginCredentials): Promise<AuthSession> {
-  return post<AuthSession>('/login', credentials);
+  return apiFetch<AuthSession>('/auth/login', { method: 'POST', body: credentials });
 }
 
 export async function registerRequest(credentials: RegisterCredentials): Promise<AuthSession> {
-  return post<AuthSession>('/register', credentials);
+  return apiFetch<AuthSession>('/auth/register', { method: 'POST', body: credentials });
 }
 
 export async function refreshRequest(refreshToken: string): Promise<AuthTokens> {
-  return post<AuthTokens>('/refresh', { refreshToken });
+  return apiFetch<AuthTokens>('/auth/refresh', { method: 'POST', body: { refreshToken } });
 }
 
 export async function logoutRequest(accessToken: string): Promise<void> {
-  await post<void>('/logout', {}, accessToken);
+  await apiFetch<void>('/auth/logout', { method: 'POST', body: {}, accessToken });
 }

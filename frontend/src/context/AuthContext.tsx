@@ -8,7 +8,6 @@ import {
   loginRequest,
   logoutRequest,
   refreshRequest,
-  registerRequest,
   saveTokens,
   saveUser,
 } from '../services/authService';
@@ -25,7 +24,11 @@ type AuthContextType = {
 
 const AuthContext = React.createContext({} as AuthContextType);
 
-const REFRESH_BEFORE_EXPIRY_MS = 55 * 60 * 1000;
+function decodeTokenExpiry(token: string): number {
+  const base64Payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  const payload = JSON.parse(atob(base64Payload));
+  return (payload.exp as number) * 1000;
+}
 
 export default function AuthContextProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -36,19 +39,22 @@ export default function AuthContextProvider({ children }: { children: React.Reac
   const accessTokenRef = useRef<string | null>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const scheduleRefresh = useCallback((refreshToken: string) => {
+  const scheduleRefresh = useCallback((accessToken: string, refreshToken: string) => {
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+
+    const expiryMs = decodeTokenExpiry(accessToken);
+    const delay = Math.max(0, expiryMs - Date.now() - 30_000);
 
     refreshTimerRef.current = setTimeout(async () => {
       try {
         const tokens = await refreshRequest(refreshToken);
         accessTokenRef.current = tokens.accessToken;
         await saveTokens(tokens);
-        scheduleRefresh(tokens.refreshToken);
+        scheduleRefresh(tokens.accessToken, tokens.refreshToken);
       } catch {
         await performLogout();
       }
-    }, REFRESH_BEFORE_EXPIRY_MS);
+    }, delay);
   }, []);
 
   useEffect(() => {
@@ -70,7 +76,7 @@ export default function AuthContextProvider({ children }: { children: React.Reac
 
         setUser(storedUser);
         setStatus('authenticated');
-        scheduleRefresh(tokens.refreshToken);
+        scheduleRefresh(tokens.accessToken, tokens.refreshToken);
       } catch {
         await clearTokens();
         setStatus('unauthenticated');
@@ -103,7 +109,7 @@ export default function AuthContextProvider({ children }: { children: React.Reac
 
     setUser(session.user);
     setStatus('authenticated');
-    scheduleRefresh(session.refreshToken);
+    scheduleRefresh(session.accessToken, session.refreshToken);
   }
 
   async function register(credentials: RegisterCredentials) {
@@ -117,7 +123,7 @@ export default function AuthContextProvider({ children }: { children: React.Reac
 
     setUser(session.user);
     setStatus('authenticated');
-    scheduleRefresh(session.refreshToken);
+    scheduleRefresh(session.accessToken, session.refreshToken);
   }
 
   async function performLogout() {
