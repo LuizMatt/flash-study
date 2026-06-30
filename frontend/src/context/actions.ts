@@ -1,4 +1,7 @@
-export const ADD_CATEGORY = 'ADD_CATEGORY';
-export const ADD_CARD = 'ADD_CARD';
-export const MARK_LEARNED = 'MARK_LEARNED';
-export const UPDATE_SESSION = 'UPDATE_SESSION';
+export const ADD_CATEGORY = "ADD_CATEGORY";
+export const ADD_CARD = "ADD_CARD";
+export const MARK_LEARNED = "MARK_LEARNED";
+export const SET_CARD_LEARNED = "SET_CARD_LEARNED";
+export const UPDATE_SESSION = "UPDATE_SESSION";
+export const RESET_CARDS_LEARNED = "RESET_CARDS_LEARNED";
+export const LOAD_DATA = "LOAD_DATA";

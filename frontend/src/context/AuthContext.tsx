@@ -1,43 +1,75 @@
-import React, { useContext, useState } from "react";
-import { User, UserData } from "../types/User";
-import { useRouter } from "expo-router";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { api, storage } from "../services/api";
+import { User } from "../types/User";
 
 type AuthContextType = {
-    user:User | null,
-    login:(user:UserData)=> void,
-    logout:() => void;
-}
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+};
 
-const AuthContext = React.createContext({} as AuthContextType);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-export default function AuthContextProvider({children}:{children:React.ReactNode}){
+export default function AuthContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const router = useRouter();
-
-    const [user,setUser] = useState<User | null> (null);
-
-    function login(userData:UserData){
-        if(!userData){
-            return;
-        }
-
-        const userLogin:User = {
-            email:userData.email,
-            name:userData.name
-        };
-
-        setUser(userLogin);
-
-        router.replace("/categories");
+  // Restaura sessão ao iniciar o app
+  useEffect(() => {
+    async function restoreSession() {
+      try {
+        const token = await storage.get("accessToken");
+        if (!token) return;
+        const { data } = await api.get("/me");
+        setUser(data.user);
+      } catch {
+        await storage.remove("accessToken");
+        await storage.remove("refreshToken");
+      } finally {
+        setIsLoading(false);
+      }
     }
+    restoreSession();
+  }, []);
 
-    function logout(){
-        setUser(null);
-    }
-    
-    return <AuthContext.Provider value={{user,login,logout}}>
-        {children}
+  async function login(email: string, password: string) {
+    const { data } = await api.post("/auth/login", { email, password });
+    await storage.set("accessToken", data.accessToken);
+    await storage.set("refreshToken", data.refreshToken);
+    setUser(data.user);
+  }
+
+  async function register(name: string, email: string, password: string) {
+    const { data } = await api.post("/auth/register", {
+      name,
+      email,
+      password,
+    });
+    await storage.set("accessToken", data.accessToken);
+    await storage.set("refreshToken", data.refreshToken);
+    setUser(data.user);
+  }
+
+  async function logout() {
+    try {
+      await api.post("/auth/logout");
+    } catch {}
+    await storage.remove("accessToken");
+    await storage.remove("refreshToken");
+    setUser(null);
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+      {children}
     </AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => useContext(AuthContext);
