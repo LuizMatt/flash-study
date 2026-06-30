@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,24 +9,32 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { useApp } from '../../src/context/AppContext';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
+import { useApp } from "../../src/context/AppContext";
 
 export default function CreateScreen() {
-  const { categoryId: initialCategoryId } = useLocalSearchParams<{ categoryId?: string }>();
-  const { state, dispatch } = useApp();
+  const { categoryId: initialCategoryId } = useLocalSearchParams<{
+    categoryId?: string;
+  }>();
+  const { state, addCard } = useApp();
   const { categories } = state;
-  const [front, setFront] = useState('');
-  const [back, setBack] = useState('');
-  const [categoryId, setCategoryId] = useState(initialCategoryId ?? categories[0]?.id ?? '');
-  const [appliedRouteCategoryId, setAppliedRouteCategoryId] = useState(initialCategoryId ?? '');
-  const [error, setError] = useState('');
+  const [front, setFront] = useState("");
+  const [back, setBack] = useState("");
+  const [categoryId, setCategoryId] = useState(
+    initialCategoryId ?? categories[0]?.id ?? "",
+  );
+  const [appliedRouteCategoryId, setAppliedRouteCategoryId] = useState(
+    initialCategoryId ?? "",
+  );
+  const [error, setError] = useState("");
   const [savedMessageVisible, setSavedMessageVisible] = useState(false);
 
   useEffect(() => {
-    const routeCategoryExists = categories.some((category) => category.id === initialCategoryId);
+    const routeCategoryExists = categories.some(
+      (category) => category.id === initialCategoryId,
+    );
 
     if (
       initialCategoryId &&
@@ -43,36 +51,31 @@ export default function CreateScreen() {
     }
   }, [appliedRouteCategoryId, categories, categoryId, initialCategoryId]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const trimmedFront = front.trim();
     const trimmedBack = back.trim();
 
     if (!trimmedFront || !trimmedBack) {
-      setError('Preencha a frente e o verso do card.');
+      setError("Preencha a frente e o verso do card.");
       return;
     }
 
     if (!categoryId) {
-      setError('Selecione um card.');
+      setError("Selecione um card.");
       return;
     }
 
-    dispatch({
-      type: 'ADD_CARD',
-      payload: {
-        id: Date.now().toString(),
-        categoryId,
-        front: trimmedFront,
-        back: trimmedBack,
-        learned: false,
-        createdAt: new Date(),
-      },
-    });
+    try {
+      await addCard({ categoryId, front: trimmedFront, back: trimmedBack });
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? "Erro ao salvar card.");
+      return;
+    }
 
     Keyboard.dismiss();
-    setFront('');
-    setBack('');
-    setError('');
+    setFront("");
+    setBack("");
+    setError("");
     setSavedMessageVisible(true);
 
     setTimeout(() => {
@@ -83,7 +86,7 @@ export default function CreateScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.safeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
         contentContainerStyle={styles.container}
@@ -95,7 +98,9 @@ export default function CreateScreen() {
         {categories.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="albums-outline" size={32} color="#8E8E93" />
-            <Text style={styles.emptyText}>Crie um card antes de adicionar flashcards.</Text>
+            <Text style={styles.emptyText}>
+              Crie um card antes de adicionar flashcards.
+            </Text>
           </View>
         ) : (
           <>
@@ -105,7 +110,7 @@ export default function CreateScreen() {
                 value={front}
                 onChangeText={(value) => {
                   setFront(value);
-                  setError('');
+                  setError("");
                 }}
                 placeholder="Pergunta ou termo"
                 placeholderTextColor="#8E8E93"
@@ -116,7 +121,9 @@ export default function CreateScreen() {
 
             <View style={styles.previewCard}>
               <Text style={styles.previewLabel}>Preview</Text>
-              <Text style={styles.previewText}>{front || 'A frente do card aparece aqui'}</Text>
+              <Text style={styles.previewText}>
+                {front || "A frente do card aparece aqui"}
+              </Text>
             </View>
 
             <View style={styles.formGroup}>
@@ -125,7 +132,7 @@ export default function CreateScreen() {
                 value={back}
                 onChangeText={(value) => {
                   setBack(value);
-                  setError('');
+                  setError("");
                 }}
                 placeholder="Resposta"
                 placeholderTextColor="#8E8E93"
@@ -147,18 +154,29 @@ export default function CreateScreen() {
                         styles.categoryOption,
                         isSelected && {
                           borderColor: category.color,
-                          backgroundColor: category.color + '12',
+                          backgroundColor: category.color + "12",
                         },
                       ]}
                       onPress={() => {
                         setCategoryId(category.id);
-                        setError('');
+                        setError("");
                       }}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                      <View
+                        style={[
+                          styles.categoryDot,
+                          { backgroundColor: category.color },
+                        ]}
+                      />
                       <Text style={styles.categoryName}>{category.name}</Text>
-                      {isSelected && <Ionicons name="checkmark-circle" size={20} color={category.color} />}
+                      {isSelected && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color={category.color}
+                        />
+                      )}
                     </TouchableOpacity>
                   );
                 })}
@@ -166,9 +184,15 @@ export default function CreateScreen() {
             </View>
 
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            {savedMessageVisible ? <Text style={styles.successText}>Card salvo!</Text> : null}
+            {savedMessageVisible ? (
+              <Text style={styles.successText}>Card salvo!</Text>
+            ) : null}
 
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSave}
+              activeOpacity={0.8}
+            >
               <Ionicons name="save-outline" size={20} color="#FFFFFF" />
               <Text style={styles.saveButtonText}>Salvar card</Text>
             </TouchableOpacity>
@@ -182,7 +206,7 @@ export default function CreateScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   container: {
     padding: 20,
@@ -190,8 +214,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
+    fontWeight: "bold",
+    color: "#1C1C1E",
     marginTop: 10,
     marginBottom: 24,
   },
@@ -200,57 +224,57 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
     marginBottom: 8,
   },
   input: {
     minHeight: 56,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
-    color: '#1C1C1E',
-    backgroundColor: '#FFFFFF',
-    textAlignVertical: 'top',
+    color: "#1C1C1E",
+    backgroundColor: "#FFFFFF",
+    textAlignVertical: "top",
   },
   backInput: {
     minHeight: 96,
   },
   previewCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     padding: 18,
     minHeight: 116,
-    justifyContent: 'center',
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: '#F2F2F7',
+    borderColor: "#F2F2F7",
     marginBottom: 18,
   },
   previewLabel: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#8E8E93',
+    fontWeight: "600",
+    color: "#8E8E93",
     marginBottom: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   previewText: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
   },
   categoryList: {
     gap: 10,
   },
   categoryOption: {
     minHeight: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
+    borderColor: "#E5E5EA",
     paddingHorizontal: 14,
   },
   categoryDot: {
@@ -262,46 +286,46 @@ const styles = StyleSheet.create({
   categoryName: {
     flex: 1,
     fontSize: 16,
-    color: '#1C1C1E',
-    fontWeight: '600',
+    color: "#1C1C1E",
+    fontWeight: "600",
   },
   errorText: {
-    color: '#FF3B30',
+    color: "#FF3B30",
     fontSize: 14,
     marginBottom: 12,
   },
   successText: {
-    color: '#16A34A',
+    color: "#16A34A",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 12,
   },
   saveButton: {
     height: 54,
     borderRadius: 8,
-    backgroundColor: '#2563EB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#2563EB",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   emptyState: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 8,
     padding: 24,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: '#F2F2F7',
+    borderColor: "#F2F2F7",
   },
   emptyText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 10,
   },
 });

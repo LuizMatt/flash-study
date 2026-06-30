@@ -3,14 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useApp } from "../context/AppContext";
 import FlashCard from "./FlashCard";
-import { ReviewSession } from "../types/Session";
 
 interface ReviewFlowProps {
   categoryId?: string;
 }
 
 export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
-  const { state, dispatch } = useApp();
+  const { state, markLearned, updateSession, resetLearned } = useApp();
   const router = useRouter();
 
   // Captura os cards uma vez ao montar a sessão para evitar que o índice
@@ -30,39 +29,38 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
   const total = cards.length;
   const current = cards[currentIndex];
 
-  function handleReset() {
-    dispatch({ type: 'RESET_CARDS_LEARNED', payload: { categoryId } });
-    const resetCards = state.flashcards.map((f) => {
-      if (!categoryId || f.categoryId === categoryId) {
-        return { ...f, learned: false };
-      }
-      return f;
-    }).filter((f) => {
-      if (categoryId) return f.categoryId === categoryId;
-      return true;
-    });
+  async function handleReset() {
+    await resetLearned(categoryId ?? null);
+    const resetCards = state.flashcards
+      .map((f) => {
+        if (!categoryId || f.categoryId === categoryId) {
+          return { ...f, learned: false };
+        }
+        return f;
+      })
+      .filter((f) => {
+        if (categoryId) return f.categoryId === categoryId;
+        return true;
+      });
     setCards(resetCards);
     setCurrentIndex(0);
     setLearnedCount(0);
     setShowResult(false);
   }
 
-  function advance(learned: boolean) {
+  async function advance(learned: boolean) {
     const nextLearnedCount = learnedCount + (learned ? 1 : 0);
 
     if (learned) {
-      dispatch({ type: "MARK_LEARNED", id: current.id });
+      await markLearned(current.id);
     }
 
     if (currentIndex + 1 >= total) {
-      const session: ReviewSession = {
-        id: Date.now().toString(),
+      await updateSession({
         categoryId: categoryId ?? "all",
-        date: new Date(),
         total,
         correct: nextLearnedCount,
-      };
-      dispatch({ type: "UPDATE_SESSION", session });
+      });
       setLearnedCount(nextLearnedCount);
       setShowResult(true);
     } else {
@@ -73,7 +71,7 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
 
   if (total === 0) {
     const hasAnyCards = state.flashcards.some((f) =>
-      categoryId ? f.categoryId === categoryId : true
+      categoryId ? f.categoryId === categoryId : true,
     );
 
     return (
@@ -81,10 +79,7 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
         <Text style={styles.resultTitle}>Tudo em dia!</Text>
         <Text style={styles.resultText}>Não há cards para revisar.</Text>
         {hasAnyCards && (
-          <TouchableOpacity
-            style={styles.doneButton}
-            onPress={handleReset}
-          >
+          <TouchableOpacity style={styles.doneButton} onPress={handleReset}>
             <Text style={styles.doneButtonText}>Revisar Novamente</Text>
           </TouchableOpacity>
         )}
@@ -101,21 +96,27 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
         </Text>
         <Text style={styles.resultText}>cards marcados como aprendidos</Text>
         <View style={{ gap: 12 }}>
-          <TouchableOpacity
-            style={styles.doneButton}
-            onPress={handleReset}
-          >
+          <TouchableOpacity style={styles.doneButton} onPress={handleReset}>
             <Text style={styles.doneButtonText}>Revisar Novamente</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.doneButton, { backgroundColor: "#1e293b", borderWidth: 1, borderColor: "#334155" }]}
+            style={[
+              styles.doneButton,
+              {
+                backgroundColor: "#1e293b",
+                borderWidth: 1,
+                borderColor: "#334155",
+              },
+            ]}
             onPress={() =>
               router.canGoBack()
                 ? router.back()
                 : router.replace("/(tabs)/categories")
             }
           >
-            <Text style={[styles.doneButtonText, { color: "#94a3b8" }]}>Voltar</Text>
+            <Text style={[styles.doneButtonText, { color: "#94a3b8" }]}>
+              Voltar
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

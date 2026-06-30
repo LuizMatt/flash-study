@@ -1,153 +1,72 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'expo-router';
-import { AuthUser, LoginCredentials, RegisterCredentials } from '../types/Auth';
-import {
-  clearTokens,
-  getStoredTokens,
-  getStoredUser,
-  loginRequest,
-  logoutRequest,
-  refreshRequest,
-  saveTokens,
-  saveUser,
-} from '../services/authService';
-
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { api, storage } from "../services/api";
+import { User } from "../types/User";
 
 type AuthContextType = {
-  user: AuthUser | null;
-  status: AuthStatus;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (credentials: RegisterCredentials) => Promise<void>;
+  user: User | null;
+  isLoading: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-const AuthContext = React.createContext({} as AuthContextType);
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-function decodeTokenExpiry(token: string): number {
-  const base64Payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-  const payload = JSON.parse(atob(base64Payload));
-  return (payload.exp as number) * 1000;
-}
+export default function AuthContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-export default function AuthContextProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [status, setStatus] = useState<AuthStatus>('loading');
-
-  const accessTokenRef = useRef<string | null>(null);
-  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const scheduleRefresh = useCallback((accessToken: string, refreshToken: string) => {
-    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-
-    const expiryMs = decodeTokenExpiry(accessToken);
-    const delay = Math.max(0, expiryMs - Date.now() - 30_000);
-
-    refreshTimerRef.current = setTimeout(async () => {
-      try {
-        const tokens = await refreshRequest(refreshToken);
-        accessTokenRef.current = tokens.accessToken;
-        await saveTokens(tokens);
-        scheduleRefresh(tokens.accessToken, tokens.refreshToken);
-      } catch {
-        await performLogout();
-      }
-    }, delay);
-  }, []);
-
+  // Restaura sessão ao iniciar o app
   useEffect(() => {
     async function restoreSession() {
       try {
-        const [storedTokens, storedUser] = await Promise.all([
-          getStoredTokens(),
-          getStoredUser(),
-        ]);
-
-        if (!storedTokens || !storedUser) {
-          setStatus('unauthenticated');
-          return;
-        }
-
-        const tokens = await refreshRequest(storedTokens.refreshToken);
-        accessTokenRef.current = tokens.accessToken;
-        await saveTokens(tokens);
-
-        setUser(storedUser);
-        setStatus('authenticated');
-        scheduleRefresh(tokens.accessToken, tokens.refreshToken);
+        const token = await storage.get("accessToken");
+        if (!token) return;
+        const { data } = await api.get("/me");
+        setUser(data.user);
       } catch {
-        await clearTokens();
-        setStatus('unauthenticated');
+        await storage.remove("accessToken");
+        await storage.remove("refreshToken");
+      } finally {
+        setIsLoading(false);
       }
     }
-
     restoreSession();
-
-    return () => {
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-    };
   }, []);
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace('/categories');
-    } else if (status === 'unauthenticated') {
-      router.replace('/login');
-    }
-  }, [status]);
-
-  async function login(credentials: LoginCredentials) {
-    const session = await loginRequest(credentials);
-
-    accessTokenRef.current = session.accessToken;
-    await Promise.all([
-      saveTokens({ accessToken: session.accessToken, refreshToken: session.refreshToken }),
-      saveUser(session.user),
-    ]);
-
-    setUser(session.user);
-    setStatus('authenticated');
-    scheduleRefresh(session.accessToken, session.refreshToken);
+  async function login(email: string, password: string) {
+    const { data } = await api.post("/auth/login", { email, password });
+    await storage.set("accessToken", data.accessToken);
+    await storage.set("refreshToken", data.refreshToken);
+    setUser(data.user);
   }
 
-  async function register(credentials: RegisterCredentials) {
-    const session = await registerRequest(credentials);
-
-    accessTokenRef.current = session.accessToken;
-    await Promise.all([
-      saveTokens({ accessToken: session.accessToken, refreshToken: session.refreshToken }),
-      saveUser(session.user),
-    ]);
-
-    setUser(session.user);
-    setStatus('authenticated');
-    scheduleRefresh(session.accessToken, session.refreshToken);
-  }
-
-  async function performLogout() {
-    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-
-    try {
-      if (accessTokenRef.current) {
-        await logoutRequest(accessTokenRef.current);
-      }
-    } catch {
-    } finally {
-      accessTokenRef.current = null;
-      await clearTokens();
-      setUser(null);
-      setStatus('unauthenticated');
-    }
+  async function register(name: string, email: string, password: string) {
+    const { data } = await api.post("/auth/register", {
+      name,
+      email,
+      password,
+    });
+    await storage.set("accessToken", data.accessToken);
+    await storage.set("refreshToken", data.refreshToken);
+    setUser(data.user);
   }
 
   async function logout() {
-    await performLogout();
+    try {
+      await api.post("/auth/logout");
+    } catch {}
+    await storage.remove("accessToken");
+    await storage.remove("refreshToken");
+    setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, status, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

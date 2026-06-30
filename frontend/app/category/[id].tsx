@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 import {
   FlatList,
   SafeAreaView,
@@ -6,44 +6,44 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp } from '../../src/context/AppContext';
-import FlashcardListItem from '../../src/components/FlashcardListItem';
-import ProgressBar from '../../src/components/ProgressBar';
-import { Flashcard } from '../../src/types/Flashcard';
-import { getCategoryIcon } from '../../src/constants/categoryIcons';
+} from "react-native";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useApp } from "../../src/context/AppContext";
+import FlashcardListItem from "../../src/components/FlashcardListItem";
+import ProgressBar from "../../src/components/ProgressBar";
+import { Flashcard } from "../../src/types/Flashcard";
+import { getCategoryIcon } from "../../src/constants/categoryIcons";
 
-type Filter = 'all' | 'pending' | 'learned';
+type Filter = "all" | "pending" | "learned";
 
 const FILTERS: { label: string; value: Filter }[] = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Pendentes', value: 'pending' },
-  { label: 'Aprendidos', value: 'learned' },
+  { label: "Todos", value: "all" },
+  { label: "Pendentes", value: "pending" },
+  { label: "Aprendidos", value: "learned" },
 ];
 
 export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { state, dispatch } = useApp();
+  const { state, setCardLearned } = useApp();
   const { categories, flashcards } = state;
-  const [selectedFilter, setSelectedFilter] = useState<Filter>('all');
+  const [selectedFilter, setSelectedFilter] = useState<Filter>("all");
 
   const category = categories.find((c) => c.id === id);
   const categoryFlashcards = useMemo(
     () => flashcards.filter((f) => f.categoryId === id),
-    [flashcards, id]
+    [flashcards, id],
   );
   const filteredFlashcards = useMemo(() => {
     return categoryFlashcards
       .filter((flashcard) => {
-        if (selectedFilter === 'learned') {
+        if (selectedFilter === "learned") {
           return flashcard.learned;
         }
 
-        if (selectedFilter === 'pending') {
+        if (selectedFilter === "pending") {
           return !flashcard.learned;
         }
 
@@ -69,17 +69,11 @@ export default function CategoryDetailScreen() {
   const pct = Math.round(progress * 100);
 
   const goToCreateCard = () => {
-    router.push({ pathname: '/create', params: { categoryId: category.id } });
+    router.push({ pathname: "/create", params: { categoryId: category.id } });
   };
 
-  const toggleCardLearned = (flashcard: Flashcard) => {
-    dispatch({
-      type: 'SET_CARD_LEARNED',
-      payload: {
-        id: flashcard.id,
-        learned: !flashcard.learned,
-      },
-    });
+  const toggleCardLearned = async (flashcard: Flashcard) => {
+    await setCardLearned(flashcard.id, !flashcard.learned);
   };
 
   const renderFlashcardItem = ({ item }: { item: Flashcard }) => (
@@ -96,7 +90,9 @@ export default function CategoryDetailScreen() {
           activeOpacity={0.7}
         >
           <Ionicons name="add" size={18} color={category.color} />
-          <Text style={[styles.addCardText, { color: category.color }]}>Adicionar</Text>
+          <Text style={[styles.addCardText, { color: category.color }]}>
+            Adicionar
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -117,7 +113,12 @@ export default function CategoryDetailScreen() {
               onPress={() => setSelectedFilter(filter.value)}
               activeOpacity={0.7}
             >
-              <Text style={[styles.filterText, isSelected && styles.selectedFilterText]}>
+              <Text
+                style={[
+                  styles.filterText,
+                  isSelected && styles.selectedFilterText,
+                ]}
+              >
                 {filter.label}
               </Text>
             </TouchableOpacity>
@@ -133,14 +134,23 @@ export default function CategoryDetailScreen() {
         options={{
           title: category.name,
           headerShadowVisible: false,
-          headerStyle: { backgroundColor: '#F8F9FA' },
+          headerStyle: { backgroundColor: "#F8F9FA" },
         }}
       />
 
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View style={[styles.iconContainer, { backgroundColor: category.color + '20' }]}>
-            <Ionicons name={getCategoryIcon(category.icon)} size={32} color={category.color} />
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: category.color + "20" },
+            ]}
+          >
+            <Ionicons
+              name={getCategoryIcon(category.icon)}
+              size={32}
+              color={category.color}
+            />
           </View>
           <View style={styles.headerInfo}>
             <Text style={styles.categoryName}>{category.name}</Text>
@@ -149,7 +159,9 @@ export default function CategoryDetailScreen() {
             </Text>
           </View>
           <View style={styles.pctContainer}>
-            <Text style={[styles.pctText, { color: category.color }]}>{pct}%</Text>
+            <Text style={[styles.pctText, { color: category.color }]}>
+              {pct}%
+            </Text>
           </View>
         </View>
 
@@ -167,33 +179,52 @@ export default function CategoryDetailScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {total === 0 ? 'Nenhum card neste deck.' : 'Nenhum card neste filtro.'}
+              {total === 0
+                ? "Nenhum card neste deck."
+                : "Nenhum card neste filtro."}
             </Text>
             {total === 0 && (
               <TouchableOpacity
-                style={[styles.emptyButton, { backgroundColor: category.color }]}
+                style={[
+                  styles.emptyButton,
+                  { backgroundColor: category.color },
+                ]}
                 onPress={goToCreateCard}
                 activeOpacity={0.7}
               >
-                <Text style={styles.emptyButtonText}>Adicionar primeiro card</Text>
+                <Text style={styles.emptyButtonText}>
+                  Adicionar primeiro card
+                </Text>
               </TouchableOpacity>
             )}
           </View>
         }
       />
 
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+      <View
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}
+      >
         <TouchableOpacity
           style={[
             styles.reviewButton,
-            { backgroundColor: total > 0 ? category.color : '#C7C7CC' },
+            { backgroundColor: total > 0 ? category.color : "#C7C7CC" },
           ]}
           disabled={total === 0}
-          onPress={() => router.push({ pathname: '/review', params: { categoryId: category.id } })}
+          onPress={() =>
+            router.push({
+              pathname: "/review",
+              params: { categoryId: category.id },
+            })
+          }
         >
-          <Ionicons name="play" size={20} color="#FFF" style={styles.buttonIcon} />
+          <Ionicons
+            name="play"
+            size={20}
+            color="#FFF"
+            style={styles.buttonIcon}
+          />
           <Text style={styles.reviewButtonText}>
-            {total > 0 ? 'Iniciar revisão' : 'Adicione cards para revisar'}
+            {total > 0 ? "Iniciar revisão" : "Adicione cards para revisar"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -204,23 +235,23 @@ export default function CategoryDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   backLink: {
     marginTop: 10,
-    color: '#007AFF',
+    color: "#007AFF",
   },
   header: {
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -228,16 +259,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   iconContainer: {
     width: 64,
     height: 64,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
   headerInfo: {
@@ -245,20 +276,20 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1C1C1E',
+    fontWeight: "bold",
+    color: "#1C1C1E",
     marginBottom: 4,
   },
   statsText: {
     fontSize: 14,
-    color: '#8E8E93',
+    color: "#8E8E93",
   },
   pctContainer: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   pctText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   progressWrapper: {
     marginTop: 8,
@@ -271,19 +302,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   listTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 14,
   },
   listTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1C1C1E',
+    fontWeight: "600",
+    color: "#1C1C1E",
   },
   addCardButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 18,
     borderWidth: 1,
     paddingHorizontal: 12,
@@ -291,11 +322,11 @@ const styles = StyleSheet.create({
   },
   addCardText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
     marginLeft: 4,
   },
   filterRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
   },
   filterButton: {
@@ -303,57 +334,57 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#E5E5EA',
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#E5E5EA",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontWeight: "600",
+    color: "#6B7280",
   },
   selectedFilterText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   emptyContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 40,
   },
   emptyText: {
-    color: '#8E8E93',
+    color: "#8E8E93",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyButton: {
     height: 44,
     borderRadius: 22,
     paddingHorizontal: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 16,
   },
   emptyButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   reviewButton: {
-    flexDirection: 'row',
+    flexDirection: "row",
     minHeight: 56,
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -363,9 +394,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   reviewButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
