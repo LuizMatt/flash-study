@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: flashstudy-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=flashstudy
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flashstudy-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PORT=3333
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/flashstudy?schema=public
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_ACCESS_EXPIRES_IN=${JWT_ACCESS_EXPIRES_IN:-15m}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:8081}
+    ports:
+      - '3333:3333'
+    restart: unless-stopped
+    command: >
+      sh -c "npx prisma migrate deploy && node dist/src/server.js"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: flashstudy-frontend
+    depends_on:
+      - api
+    environment:
+      # O browser do usuário acessa a API via localhost (porta mapeada do host)
+      - EXPO_PUBLIC_API_URL=http://localhost:3333/api
+      - BROWSER=none
+    ports:
+      - '8081:8081'
+    restart: unless-stopped
+
+volumes:
+  pgdata:
