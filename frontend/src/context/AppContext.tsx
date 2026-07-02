@@ -9,6 +9,8 @@ import {
   UPDATE_SESSION,
   RESET_CARDS_LEARNED,
   LOAD_DATA,
+  DELETE_CARD,
+  UPDATE_CATEGORY,
 } from "./actions";
 import { Category } from "../types/Category";
 import { Flashcard } from "../types/Flashcard";
@@ -37,11 +39,13 @@ interface AppContextType {
   markLearned: (id: string) => Promise<void>;
   setCardLearned: (id: string, learned: boolean) => Promise<void>;
   updateSession: (data: {
-    categoryId: string;
+    categoryId?: string;
     total: number;
     correct: number;
   }) => Promise<void>;
   resetLearned: (categoryId?: string | null) => Promise<void>;
+  deleteCard: (id: string) => Promise<void>;
+  updateCategory: (id: string, data: { name: string; color: string; icon: string }) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -110,11 +114,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function updateSession(data: {
-    categoryId: string;
+    categoryId?: string;
     total: number;
     correct: number;
   }) {
-    if (!UUID_REGEX.test(data.categoryId)) return;
     const res = await api.post("/review-sessions", data);
     dispatch({ type: UPDATE_SESSION, payload: res.data.session });
   }
@@ -131,6 +134,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function deleteCard(id: string) {
+    await api.delete(`/flashcards/${id}`);
+    dispatch({ type: DELETE_CARD, payload: id });
+  }
+
+  async function updateCategory(id: string, data: { name: string; color: string; icon: string }) {
+    const res = await api.put(`/categories/${id}`, data);
+    dispatch({ type: UPDATE_CATEGORY, payload: { id, ...res.data.category } });
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -143,6 +156,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCardLearned,
         updateSession,
         resetLearned,
+        deleteCard,
+        updateCategory,
       }}
     >
       {children}

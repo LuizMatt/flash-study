@@ -18,7 +18,7 @@ export default function CategoryCard({ category, learnedCount, totalCount }: Pro
   return (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => router.push(`/review/${category.id}`)}
+      onPress={() => router.push(`/category/${category.id}`)}
       activeOpacity={0.7}
     >
       <View style={styles.cardHeader}>

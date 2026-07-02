@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useApp } from "../../src/context/AppContext";
 import FlashcardListItem from "../../src/components/FlashcardListItem";
 import ProgressBar from "../../src/components/ProgressBar";
+import EditCategoryModal from "../../src/components/EditCategoryModal";
 import { Flashcard } from "../../src/types/Flashcard";
 import { getCategoryIcon } from "../../src/constants/categoryIcons";
 
@@ -27,9 +28,10 @@ const FILTERS: { label: string; value: Filter }[] = [
 export default function CategoryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { state, setCardLearned } = useApp();
+  const { state, setCardLearned, deleteCard } = useApp();
   const { categories, flashcards } = state;
   const [selectedFilter, setSelectedFilter] = useState<Filter>("all");
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const category = categories.find((c) => c.id === id);
   const categoryFlashcards = useMemo(
@@ -76,8 +78,12 @@ export default function CategoryDetailScreen() {
     await setCardLearned(flashcard.id, !flashcard.learned);
   };
 
+  const handleDeleteCard = async (flashcard: Flashcard) => {
+    await deleteCard(flashcard.id);
+  };
+
   const renderFlashcardItem = ({ item }: { item: Flashcard }) => (
-    <FlashcardListItem flashcard={item} onToggleLearned={toggleCardLearned} />
+    <FlashcardListItem flashcard={item} onToggleLearned={toggleCardLearned} onDelete={handleDeleteCard} />
   );
 
   const renderListHeader = () => (
@@ -135,6 +141,17 @@ export default function CategoryDetailScreen() {
           title: category.name,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: "#F8F9FA" },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => setIsEditModalVisible(true)}
+              style={{ marginRight: 8 }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Editar categoria"
+            >
+              <Ionicons name="pencil-outline" size={22} color="#1C1C1E" />
+            </TouchableOpacity>
+          ),
         }}
       />
 
@@ -228,6 +245,14 @@ export default function CategoryDetailScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {isEditModalVisible && (
+        <EditCategoryModal
+          visible={isEditModalVisible}
+          category={category}
+          onClose={() => setIsEditModalVisible(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }

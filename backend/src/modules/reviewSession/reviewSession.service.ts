@@ -15,13 +15,15 @@ export class ReviewSessionService {
   }
 
   async createReviewSession(userId: string, data: CreateReviewSessionRequest) {
-    const category = await this.categoryRepository.findRawById(data.categoryId);
-    if (!category) {
-      throw new NotFoundError('Categoria nao encontrada');
-    }
+    if (data.categoryId) {
+      const category = await this.categoryRepository.findRawById(data.categoryId);
+      if (!category) {
+        throw new NotFoundError('Categoria nao encontrada');
+      }
 
-    if (category.userId !== userId) {
-      throw new ForbiddenError('Voce nao tem permissao para registrar revisoes nesta categoria');
+      if (category.userId !== userId) {
+        throw new ForbiddenError('Voce nao tem permissao para registrar revisoes nesta categoria');
+      }
     }
 
     if (data.correct > data.total) {
@@ -34,7 +36,7 @@ export class ReviewSessionService {
 
     return this.repository.create({
       userId,
-      categoryId: data.categoryId,
+      categoryId: data.categoryId ?? null,
       total: data.total,
       correct: data.correct,
       date: data.date ?? new Date(),

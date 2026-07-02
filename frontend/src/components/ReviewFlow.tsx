@@ -57,7 +57,7 @@ export default function ReviewFlow({ categoryId }: ReviewFlowProps) {
 
     if (currentIndex + 1 >= total) {
       await updateSession({
-        categoryId: categoryId ?? "all",
+        categoryId: categoryId,
         total,
         correct: nextLearnedCount,
       });

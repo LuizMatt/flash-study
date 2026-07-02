@@ -2,7 +2,7 @@ import { prisma } from '../../config/database';
 
 type CreateReviewSessionData = {
   userId: string;
-  categoryId: string;
+  categoryId: string | null;
   total: number;
   correct: number;
   date: Date;

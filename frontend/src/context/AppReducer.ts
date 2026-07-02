@@ -9,6 +9,8 @@ import {
   UPDATE_SESSION,
   RESET_CARDS_LEARNED,
   LOAD_DATA,
+  DELETE_CARD,
+  UPDATE_CATEGORY,
 } from "./actions";
 
 export interface AppState {
@@ -68,6 +70,18 @@ export function appReducer(
           }
           return card;
         }),
+      };
+    case DELETE_CARD:
+      return {
+        ...state,
+        flashcards: state.flashcards.filter((card) => card.id !== action.payload),
+      };
+    case UPDATE_CATEGORY:
+      return {
+        ...state,
+        categories: state.categories.map((cat) =>
+          cat.id === action.payload.id ? { ...cat, ...action.payload } : cat,
+        ),
       };
     default:
       return state;

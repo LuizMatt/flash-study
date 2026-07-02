@@ -1,15 +1,34 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Flashcard } from '../types/Flashcard';
 
 interface Props {
   flashcard: Flashcard;
   onToggleLearned?: (flashcard: Flashcard) => void;
+  onDelete?: (flashcard: Flashcard) => void;
 }
 
-export default function FlashcardListItem({ flashcard, onToggleLearned }: Props) {
+export default function FlashcardListItem({ flashcard, onToggleLearned, onDelete }: Props) {
   const statusColor = flashcard.learned ? '#34C759' : '#FF9500';
   const statusLabel = flashcard.learned ? 'Aprendido' : 'Pendente';
+
+  function handleDelete() {
+    if (Platform.OS === 'web') {
+      if (confirm('Deseja excluir este flashcard?')) {
+        onDelete?.(flashcard);
+      }
+    } else {
+      Alert.alert(
+        'Excluir flashcard',
+        'Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Excluir', style: 'destructive', onPress: () => onDelete?.(flashcard) },
+        ],
+      );
+    }
+  }
 
   return (
     <View style={styles.cardItem}>
@@ -22,17 +41,31 @@ export default function FlashcardListItem({ flashcard, onToggleLearned }: Props)
         </Text>
       </View>
 
-      <TouchableOpacity
-        style={[styles.badge, { backgroundColor: statusColor + '20' }]}
-        onPress={() => onToggleLearned?.(flashcard)}
-        activeOpacity={0.7}
-        accessibilityRole="button"
-        accessibilityLabel={`Marcar card como ${flashcard.learned ? 'pendente' : 'aprendido'}`}
-      >
-        <Text style={[styles.badgeText, { color: statusColor }]}>
-          {statusLabel}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.badge, { backgroundColor: statusColor + '20' }]}
+          onPress={() => onToggleLearned?.(flashcard)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Marcar card como ${flashcard.learned ? 'pendente' : 'aprendido'}`}
+        >
+          <Text style={[styles.badgeText, { color: statusColor }]}>
+            {statusLabel}
+          </Text>
+        </TouchableOpacity>
+
+        {onDelete && (
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={handleDelete}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Excluir flashcard"
+          >
+            <Ionicons name="trash-outline" size={18} color="#FF3B30" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -63,6 +96,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -71,5 +109,13 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  deleteButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#FFF1F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

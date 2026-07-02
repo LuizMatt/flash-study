@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createReviewSessionSchema = z
   .object({
-    categoryId: z.string().uuid('Categoria deve ser um UUID valido'),
+    categoryId: z.string().uuid('Categoria deve ser um UUID valido').optional().nullable(),
     total: z
       .number()
       .int('Total de cartoes deve ser um numero inteiro')
